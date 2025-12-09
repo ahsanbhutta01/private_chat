@@ -71,7 +71,7 @@ const messages = new Elysia({ prefix: '/messages' }).use(authMiddleware).post('/
     })
   }
 ).get("/", async ({ auth }) => {
-  const messages = await redis.lrange<Message>(`messages:${auth.roomId}`, 0, 1);
+  const messages = await redis.lrange<Message>(`messages:${auth.roomId}`, 0, -1);
 
   return {
     messages: messages.map((m) => ({
