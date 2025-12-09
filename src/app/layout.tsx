@@ -12,6 +12,9 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Private Chat App",
   description: "Chat will be private b/w user. After sometime (10min) chat will be destryed",
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
@@ -24,7 +27,7 @@ export default function RootLayout({
       <body
         className={`${jetBrainsMono.variable}  antialiased`}
       >
-        <Toaster position="top-center" toastOptions={{duration:2000, removeDelay:2000}}/>
+        <Toaster position="top-center" toastOptions={{ duration: 2000, removeDelay: 2000 }} />
         <Provider>
           {children}
         </Provider>
