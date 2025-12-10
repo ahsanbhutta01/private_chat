@@ -162,10 +162,47 @@ const RoomIdPage = () => {
 
   return (
     <main className="flex flex-col h-screen max-h-screen overflow-hidden">
-      <header className="border-b border-zinc-800 py-4 md:px-20 flex flex-col  md:flex-row items-center justify-between bg-zinc-900/30">
+      <header className="border-b border-zinc-800 py-4 md:px-20 px-4 bg-zinc-900/30">
+        {/* Desktop Layout */}
+        <div className="hidden md:flex flex-row items-center justify-between">
+          <div className="flex items-center gap-4">
+            <section className="flex flex-col items-start">
+              <span className="text-xs text-zinc-500 uppercase">Room ID</span>
+              <div className="flex items-center gap-3">
+                <span className="font-bold text-green-500">{roomId}</span>
+                <button
+                  onClick={copyLink}
+                  className={`text-[15px] px-2 py-0.5 rounded transition-colors flex items-center gap-1 cursor-pointer ${copyStatus === 'COPIED'
+                    ? '  text-green-500 bg-zinc-800'
+                    : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200'
+                    }`}
+                >
+                  {copyStatus === 'COPIED' && <span>✓</span>}
+                  {copyStatus}
+                </button>
+              </div>
+            </section>
 
-        <div className="flex items-center flex-col md:flex-row md:gap-4 gap-1">
-          <section className="flex flex-col items-center md:items-start">
+            <section className="h-8 w-px bg-zinc-800" />
+
+            <section className="flex flex-col">
+              <span className="text-xs text-zinc-500 uppercase">Self-Destruct</span>
+              <span className={`text-sm font-bold flex items-center gap-2 
+                ${timeRemaining !== null && timeRemaining < 60 ? "text-red-500" : "text-amber-500"}`}
+              >
+                {timeRemaining !== null ? formatTimeRemaining(timeRemaining) : "--:--"}
+              </span>
+            </section>
+          </div>
+
+          <button className="text-xs bg-zinc-800 hover:bg-red-600 cursor-pointer px-3 py-1.5 rounded text-zinc-400 hover:text-white font-bold transition-all group flex items-center gap-2 disabled:opacity-50" onClick={() => destroyRoom()}>
+            <span className="group-hover:animate-pulse">💣</span>DESTROY NOW
+          </button>
+        </div>
+
+        {/* Mobile Layout */}
+        <div className="md:hidden flex flex-col gap-3">
+          <section className="flex flex-col items-center">
             <span className="text-xs text-zinc-500 uppercase">Room ID</span>
             <div className="flex items-center gap-3">
               <span className="font-bold text-green-500">{roomId}</span>
@@ -182,25 +219,24 @@ const RoomIdPage = () => {
             </div>
           </section>
 
-          <section className="h-8 w-px hidden md:block bg-zinc-800" />
+          <div className="flex items-center justify-between gap-4">
+            <section className="flex flex-col">
+              <span className="text-xs text-zinc-500 uppercase">Self-Destruct</span>
+              <span className={`text-sm font-bold flex items-center gap-2 
+                ${timeRemaining !== null && timeRemaining < 60 ? "text-red-500" : "text-amber-500"}`}
+              >
+                {timeRemaining !== null ? formatTimeRemaining(timeRemaining) : "--:--"}
+              </span>
+            </section>
 
-          <section className="flex flex-col">
-            <span className="text-xs text-zinc-500 uppercase">Self-Destruct</span>
-            <span className={`text-sm font-bold flex items-center gap-2 
-              ${timeRemaining !== null && timeRemaining < 60 ? "text-red-500" : "text-amber-500"}`}
-            >
-              {timeRemaining !== null ? formatTimeRemaining(timeRemaining) : "--:--"}
-            </span>
-          </section>
+            <button className="text-xs bg-zinc-800 hover:bg-red-600 cursor-pointer px-3 py-1.5 rounded text-zinc-400 hover:text-white font-bold transition-all group flex items-center gap-2 disabled:opacity-50" onClick={() => destroyRoom()}>
+              <span className="group-hover:animate-pulse">💣</span>DESTROY NOW
+            </button>
+          </div>
         </div>
-
-        <button className="text-xs bg-zinc-800 hover:bg-red-600 cursor-pointer px-3 py-1.5 rounded text-zinc-400 hover:text-white font-bold transition-all group flex items-center gap-2 disabled:opacity-50" onClick={() => destroyRoom()}>
-          <span className="group-hover:animate-pulse">💣</span>DESTROY NOW
-        </button>
-
       </header>
 
-      <section className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+      <section className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
         {
           messages?.messages.length === 0 && (
             <div className="flex items-center justify-center h-full">
@@ -216,7 +252,7 @@ const RoomIdPage = () => {
             const isMyMessage = msg.sender === username;
             return (
               <div
-                className={`flex lg:px-40 md:px-6 flex-col ${isMyMessage ? 'items-end' : 'items-start'}`}
+                className={`flex lg:px-40 md:px-6 mt-2 flex-col ${isMyMessage ? 'items-end' : 'items-start'}`}
                 key={msg.id}
               >
                 <div className="max-w-[70%] group">
@@ -230,8 +266,8 @@ const RoomIdPage = () => {
                   </div>
 
                   <div className={`rounded-2xl px-4 py-2.5 ${isMyMessage
-                      ? 'bg-green-400/60 text-white rounded-tr-none'
-                      : 'bg-zinc-800 text-zinc-100 rounded-tl-none'
+                    ? 'bg-green-400/60 text-white rounded-tr-none'
+                    : 'bg-zinc-800 text-zinc-100 rounded-tl-none'
                     }`}>
                     <p className="text-sm leading-relaxed wrap-break-word">
                       {msg.text}
