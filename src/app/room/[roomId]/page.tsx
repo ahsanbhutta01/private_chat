@@ -21,8 +21,11 @@ const RoomIdPage = () => {
   const [copyStatus, setCopyStatus] = useState<string | null>('COPY');
   const [input, setInput] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { username } = useUsername();
   const router = useRouter();
+  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+  const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const { data: ttlData } = useQuery({
@@ -32,6 +35,7 @@ const RoomIdPage = () => {
       return res.data
     }
   })
+
   useEffect(() => {
     if (ttlData?.ttl !== undefined) {
       setTimeRemaining(ttlData.ttl)
@@ -65,6 +69,9 @@ const RoomIdPage = () => {
       return res.data
     }
   })
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const { mutate: sendMessage, isPending } = useMutation({
     mutationFn: async ({ text }: { text: string }) => {
@@ -95,14 +102,29 @@ const RoomIdPage = () => {
 
   useRealtime({
     channels: [roomId],
-    events: ["chat.message", "chat.destroy"],
-    onData: ({ event }) => {
+    events: ["chat.message", "chat.destroy", "chat.typing"],
+    onData: ({ event, data }) => {
       if (event === "chat.message") {
         refetch()
       }
 
       if (event === "chat.destroy") {
         router.push('/?destroyed=true')
+      }
+
+      if (event === "chat.typing") {
+        const typingData = data as { sender: string; isTyping: boolean };
+        if (typingData.sender !== username) {
+          setTypingUsers((prev) => {
+            const newSet = new Set(prev);
+            if (typingData.isTyping) {
+              newSet.add(typingData.sender);
+            } else {
+              newSet.delete(typingData.sender);
+            }
+            return newSet;
+          });
+        }
       }
     }
   })
@@ -112,6 +134,29 @@ const RoomIdPage = () => {
     navigator.clipboard.writeText(url)
     setCopyStatus("COPIED")
     setTimeout(() => setCopyStatus("COPY"), 2000)
+  }
+
+  async function handleTyping() {
+    // Emit typing event
+    await fetch(`/api/realtime/typing?roomId=${roomId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sender: username, isTyping: true })
+    });
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set timeout to stop typing indicator after 2 seconds
+    typingTimeoutRef.current = setTimeout(async () => {
+      await fetch(`/api/realtime/typing?roomId=${roomId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender: username, isTyping: false })
+      });
+    }, 2000);
   }
 
 
@@ -167,26 +212,50 @@ const RoomIdPage = () => {
         }
 
         {
-          messages?.messages.map((msg) => (
-            <div className="flex flex-col items-start" key={msg.id}>
-              <div className="max-w-[80%] group">
-                <div className="flex items-baseline gap-3 mb-1">
-                  <span className={`text-xs font-bold ${msg.sender === username ? "text-green-500" : "text-blue-500"}`}>
-                    {msg.sender === username ? "YOU" : msg.sender}
-                  </span>
+          messages?.messages.map((msg) => {
+            const isMyMessage = msg.sender === username;
+            return (
+              <div
+                className={`flex lg:px-40 md:px-6 flex-col ${isMyMessage ? 'items-end' : 'items-start'}`}
+                key={msg.id}
+              >
+                <div className="max-w-[70%] group">
+                  <div className={`flex items-baseline gap-2 mb-1 ${isMyMessage ? 'flex-row-reverse' : ''}`}>
+                    <span className={`text-xs font-bold ${isMyMessage ? "text-green-400" : "text-blue-400"}`}>
+                      {isMyMessage ? "YOU" : msg.sender}
+                    </span>
+                    <span className="text-[10px] text-zinc-500">
+                      {format(msg.timestamp, "HH:mm")}
+                    </span>
+                  </div>
 
-                  <span className="text-[10px] text-zinc-600">
-                    {format(msg.timestamp, "HH:mm")}
-                  </span>
+                  <div className={`rounded-2xl px-4 py-2.5 ${isMyMessage
+                      ? 'bg-green-400/60 text-white rounded-tr-none'
+                      : 'bg-zinc-800 text-zinc-100 rounded-tl-none'
+                    }`}>
+                    <p className="text-sm leading-relaxed wrap-break-word">
+                      {msg.text}
+                    </p>
+                  </div>
                 </div>
-
-                <p className="text-sm text-zinc-300 leading-relaxed break-all">
-                  {msg.text}
-                </p>
               </div>
-            </div>
-          ))
+            );
+          })
         }
+
+        {typingUsers.size > 0 && (
+          <div className="flex items-center gap-2 px-4 py-2">
+            <div className="flex gap-1">
+              <span className="w-2 h-2 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-2 h-2 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-2 h-2 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+            <span className="text-xs text-zinc-500">
+              {Array.from(typingUsers)[0]} is typing...
+            </span>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
       </section>
 
       <section className="py-4 border-t border-zinc-800 bg-zinc-900/30 px-20 ">
@@ -201,9 +270,23 @@ const RoomIdPage = () => {
                 if (e.key === "Enter" && input.trim()) {
                   sendMessage({ text: input })
                   inputRef.current?.focus();
+                  // Stop typing indicator on send
+                  if (typingTimeoutRef.current) {
+                    clearTimeout(typingTimeoutRef.current);
+                  }
+                  fetch(`/api/realtime/typing?roomId=${roomId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sender: username, isTyping: false })
+                  });
                 }
               }}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                if (e.target.value.length > 0) {
+                  handleTyping();
+                }
+              }}
               placeholder="Type message..."
               className="w-full bg-black border border-zinc-800 focus:border-zinc-700 focus:outline-none transition-colors text-zinc-100 placeholder:text-zinc-700 py-3 pl-8 pr-4 text-sm"
             />
