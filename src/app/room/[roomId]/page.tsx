@@ -161,7 +161,7 @@ const RoomIdPage = () => {
 
 
   return (
-    <main className="flex flex-col h-screen max-h-screen overflow-hidden">
+    <main className="flex flex-col h-[45rem] md:h-screen max-h-screen overflow-hidden">
       <header className="border-b border-zinc-800 py-4 md:px-20 px-4 bg-zinc-900/30">
         {/* Desktop Layout */}
         <div className="hidden md:flex flex-row items-center justify-between">
@@ -239,7 +239,7 @@ const RoomIdPage = () => {
       <section className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
         {
           messages?.messages.length === 0 && (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex items-center justify-center ">
               <p className="text-zinc-600 text-sm font-mono">
                 No messages yet, start the conversation
               </p>
@@ -280,13 +280,13 @@ const RoomIdPage = () => {
         }
 
         {typingUsers.size > 0 && (
-          <div className="flex items-center gap-2 px-4 py-2">
+          <div className="flex items-center relative -top-8 gap-2 px-4 py-2">
             <div className="flex gap-1">
-              <span className="w-2 h-2 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-              <span className="w-2 h-2 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-              <span className="w-2 h-2 bg-zinc-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
-            <span className="text-xs text-zinc-500">
+            <span className="text-xs text-green-500">
               {Array.from(typingUsers)[0]} is typing...
             </span>
           </div>
@@ -294,8 +294,8 @@ const RoomIdPage = () => {
         <div ref={messagesEndRef} />
       </section>
 
-      <section className="py-4 border-t border-zinc-800 bg-zinc-900/30 px-20 ">
-        <div className="flex gap-4">
+      <section className="md:py-4 py-2 border-t border-zinc-800 bg-zinc-900/30 md:px-20 px-5">
+        <div className="flex md:gap-4 ">
           <div className="flex-1 relative group">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-green-500 animate-pulse">{">"}</span>
             <input
@@ -324,7 +324,7 @@ const RoomIdPage = () => {
                 }
               }}
               placeholder="Type message..."
-              className="w-full bg-black border border-zinc-800 focus:border-zinc-700 focus:outline-none transition-colors text-zinc-100 placeholder:text-zinc-700 py-3 pl-8 pr-4 text-sm"
+              className="md:w-full bg-black border border-zinc-800 focus:border-zinc-700 focus:outline-none transition-colors text-zinc-100 placeholder:text-zinc-700 py-3 pl-8 pr-4 text-sm"
             />
           </div>
           <button
