@@ -161,7 +161,7 @@ const RoomIdPage = () => {
 
 
   return (
-    <main className="flex flex-col h-[45rem] md:h-screen max-h-screen overflow-hidden">
+    <main className="flex flex-col h-180 md:h-screen max-h-screen overflow-hidden">
       <header className="border-b border-zinc-800 py-4 md:px-20 px-4 bg-zinc-900/30">
         {/* Desktop Layout */}
         <div className="hidden md:flex flex-row items-center justify-between">
@@ -239,7 +239,7 @@ const RoomIdPage = () => {
       <section className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
         {
           messages?.messages.length === 0 && (
-            <div className="flex items-center justify-center ">
+            <div className="flex items-center justify-center h-full">
               <p className="text-zinc-600 text-sm font-mono">
                 No messages yet, start the conversation
               </p>
@@ -295,7 +295,7 @@ const RoomIdPage = () => {
       </section>
 
       <section className="md:py-4 py-2 border-t border-zinc-800 bg-zinc-900/30 md:px-20 px-5">
-        <div className="flex md:gap-4 ">
+        <div className="flex md:gap-4">
           <div className="flex-1 relative group">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-green-500 animate-pulse">{">"}</span>
             <input
